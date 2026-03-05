@@ -13,7 +13,7 @@ from datetime import datetime
 from fastapi import FastAPI, UploadFile, File, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, validator
 import pandas as pd
 import httpx
 import logging
@@ -42,6 +42,9 @@ app.add_middleware(
 UPLOAD_DIR = Path("uploads")
 UPLOAD_DIR.mkdir(exist_ok=True)
 
+MAX_UPLOAD_SIZE = 50 * 1024 * 1024  # 50MB max file size
+MAX_ROWS_IN_MEMORY = 100000  # Limit rows for in-memory processing
+
 # Global state (in production, use a database)
 datasets: Dict[str, Dict[str, Any]] = {}
 
@@ -51,6 +54,14 @@ class ChatRequest(BaseModel):
     message: str
     dataset_id: str
     history: Optional[List[Dict[str, str]]] = []
+
+    @validator('message')
+    def validate_message(cls, v):
+        if not v or not v.strip():
+            raise ValueError('Message cannot be empty')
+        if len(v) > 5000:
+            raise ValueError('Message too long (max 5000 characters)')
+        return v.strip()
 
 class ChatResponse(BaseModel):
     response: str
@@ -71,12 +82,16 @@ def get_ollama_url() -> str:
     """Get Ollama API URL from environment or use default"""
     return os.getenv("OLLAMA_URL", "http://localhost:11434")
 
+def get_ollama_model() -> str:
+    """Get Ollama model name from environment or use default"""
+    return os.getenv("OLLAMA_MODEL", "mistral")
+
 async def call_ollama(prompt: str, system_prompt: str = "") -> str:
-    """Call Ollama API with Mistral model"""
+    """Call Ollama API with configured model"""
     url = f"{get_ollama_url()}/api/generate"
     
     payload = {
-        "model": "mistral",
+        "model": get_ollama_model(),
         "prompt": prompt,
         "system": system_prompt,
         "stream": False
@@ -93,6 +108,8 @@ async def call_ollama(prompt: str, system_prompt: str = "") -> str:
             status_code=503, 
             detail="Ollama is not running. Please start Ollama with 'ollama serve'"
         )
+    except httpx.TimeoutException:
+        raise HTTPException(status_code=504, detail="Request to Ollama timed out")
     except Exception as e:
         logger.error(f"Error calling Ollama: {e}")
         raise HTTPException(status_code=500, detail=f"Error calling LLM: {str(e)}")
@@ -167,7 +184,8 @@ async def root():
     return {
         "message": "DSBDA Data Analysis API",
         "version": "1.0.0",
-        "ollama_url": get_ollama_url()
+        "ollama_url": get_ollama_url(),
+        "ollama_model": get_ollama_model()
     }
 
 @app.post("/api/datasets/upload", response_model=DatasetInfo)
@@ -186,6 +204,17 @@ async def upload_dataset(
             detail=f"File type not supported. Allowed: {allowed_extensions}"
         )
     
+    # Check file size
+    file.file.seek(0, 2)  # Seek to end
+    file_size = file.file.tell()
+    file.file.seek(0)  # Reset to beginning
+    
+    if file_size > MAX_UPLOAD_SIZE:
+        raise HTTPException(
+            status_code=413,
+            detail=f"File too large. Maximum size: {MAX_UPLOAD_SIZE // (1024*1024)}MB"
+        )
+    
     # Generate unique ID
     dataset_id = str(uuid.uuid4())
     file_path = UPLOAD_DIR / f"{dataset_id}{file_ext}"
@@ -201,6 +230,25 @@ async def upload_dataset(
     # Load and validate data
     try:
         df = load_dataframe(dataset_id)
+        
+        # Check row limit
+        if len(df) > MAX_ROWS_IN_MEMORY:
+            # Clean up file
+            if file_path.exists():
+                file_path.unlink()
+            raise HTTPException(
+                status_code=400,
+                detail=f"Dataset too large. Maximum rows: {MAX_ROWS_IN_MEMORY}"
+            )
+            
+    except pd.errors.EmptyDataError:
+        if file_path.exists():
+            file_path.unlink()
+        raise HTTPException(status_code=400, detail="File is empty")
+    except pd.errors.ParserError as e:
+        if file_path.exists():
+            file_path.unlink()
+        raise HTTPException(status_code=400, detail=f"Error parsing file: {str(e)}")
     except Exception as e:
         # Clean up file
         if file_path.exists():
@@ -245,15 +293,24 @@ async def get_dataset_data(
     if dataset_id not in datasets:
         raise HTTPException(status_code=404, detail="Dataset not found")
     
+    # Validate pagination
+    if limit < 1 or limit > 1000:
+        raise HTTPException(status_code=400, detail="Limit must be between 1 and 1000")
+    if offset < 0:
+        raise HTTPException(status_code=400, detail="Offset must be non-negative")
+    
     try:
         df = load_dataframe(dataset_id)
         
         # Apply filters if provided
         if filters:
-            filter_dict = json.loads(filters)
-            for col, value in filter_dict.items():
-                if col in df.columns:
-                    df = df[df[col] == value]
+            try:
+                filter_dict = json.loads(filters)
+                for col, value in filter_dict.items():
+                    if col in df.columns:
+                        df = df[df[col] == value]
+            except json.JSONDecodeError:
+                raise HTTPException(status_code=400, detail="Invalid filter format")
         
         # Apply pagination
         total = len(df)
@@ -265,9 +322,8 @@ async def get_dataset_data(
             "limit": limit,
             "offset": offset
         }
-    except json.JSONDecodeError:
-        raise HTTPException(status_code=400, detail="Invalid filter format")
     except Exception as e:
+        logger.error(f"Error getting dataset data: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/datasets/{dataset_id}/summary")
@@ -280,6 +336,7 @@ async def get_dataset_summary(dataset_id: str):
         df = load_dataframe(dataset_id)
         return generate_dataset_summary(df)
     except Exception as e:
+        logger.error(f"Error generating summary: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/chat", response_model=ChatResponse)
@@ -301,29 +358,104 @@ async def chat(request: ChatRequest):
         # Get sample data (first 20 rows)
         sample_data = df.head(20).to_csv(index=False)
         
-        # Build the prompt
-        system_prompt = """You are a data analysis assistant. Your task is to:
-1. Understand the user's question about the data
-2. Analyze the data to find the answer
-3. If asked to create a chart, return a valid Vega-Lite chart specification
-4. Always provide accurate analysis based on the data
+        # Build the prompt with enhanced chart generation capabilities
+        system_prompt = """You are an expert data analysis assistant specializing in visualization and statistical analysis.
 
-When responding:
-- Be concise but informative
-- If providing data, include the actual numbers
-- If asked for charts, return a valid JSON Vega-Lite specification
-- Format your response clearly
-        
-Available chart types for Vega-Lite:
-- bar, line, area, scatter, pie, histogram
-- You can specify: mark type, encoding (x, y, color, etc.), titles
-        
-Return your response as a JSON object with these fields:
+Your core capabilities:
+1. **Data Analysis**: Analyze datasets to find patterns, trends, correlations, and insights
+2. **Chart Generation**: Create production-ready Vega-Lite specifications for various chart types
+3. **Statistical Analysis**: Calculate means, medians, modes, correlations, distributions, etc.
+4. **Data Transformation**: Aggregate, filter, group, and transform data as needed
+
+## CHART GENERATION RULES:
+
+When the user asks for any visualization (chart, graph, plot), you MUST return a valid Vega-Lite JSON specification.
+
+### Available Chart Types and When to Use:
+
+1. **Bar Chart** (`mark: "bar"`):
+   - Categorical comparisons
+   - Frequency distributions
+   - Top-N rankings
+   - Use when: comparing values across categories
+
+2. **Line Chart** (`mark: "line"`):
+   - Time series data
+   - Trends over time
+   - Continuous data
+   - Use when: showing data changes over time or continuous variable
+
+3. **Area Chart** (`mark: {"type": "area"}`):
+   - Cumulative trends
+   - Volume over time
+   - Use when: emphasizing magnitude of change
+
+4. **Scatter Plot** (`mark: "point"`):
+   - Correlation between two numeric variables
+   - Outlier detection
+   - Use when: showing relationship between two numeric variables
+
+5. **Pie/Donut Chart** (`mark: {"type": "pie"}` or `"donut"`):
+   - Proportional distribution
+   - Part-to-whole relationships
+   - Use when: showing percentage breakdown (limit to 5-7 categories)
+
+6. **Histogram** (`mark: "bar"` with binning):
+   - Distribution of numeric data
+   - Use when: showing frequency distributions
+
+7. **Box Plot** (`mark: "boxplot"`):
+   - Statistical distributions
+   - Use when: showing quartiles and outliers
+
+### Vega-Lite Specification Format:
+
+```json
 {
-    "response": "Your text response",
-    "chart_spec": { (optional) Vega-Lite spec },
-    "data": [ (optional) data records for display ]
-}"""
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "width": "container",
+  "height": 300,
+  "title": "Your Chart Title",
+  "data": {
+    "values": []
+  },
+  "mark": "bar",
+  "encoding": {
+    "x": {"field": "column_name", "type": "quantitative|ordinal|nominal|temporal", "title": "X Axis Label"},
+    "y": {"field": "value_column", "type": "quantitative|ordinal", "title": "Y Axis Label"},
+    "color": {"field": "category_column", "type": "nominal"},
+    "tooltip": [{"field": "column1"}, {"field": "column2"}]
+  }
+}
+```
+
+### Chart Best Practices:
+- Always set appropriate axis titles
+- Use clear, descriptive titles
+- Choose correct data types (quantitative for numbers, nominal for categories, temporal for dates)
+- For pie charts: limit to top categories, group rest as "Other"
+- For time series: use temporal type on x-axis
+- Use tooltips for interactivity
+- Use color schemes appropriately
+
+## DATA ANALYSIS RULES:
+
+1. Always calculate actual statistics from the data
+2. Provide specific numbers and percentages
+3. Identify trends and patterns
+4. Note any outliers or anomalies
+5. For correlations: interpret as strong/moderate/weak
+
+## RESPONSE FORMAT:
+
+You must return a JSON object with these fields:
+{
+    "response": "Your detailed text analysis with specific numbers and insights",
+    "chart_spec": {},
+    "data": []
+}
+
+IMPORTANT: Always respond in valid JSON format."""
 
         # Generate summary statistics for context
         numeric_cols = df.select_dtypes(include=['number']).columns.tolist()

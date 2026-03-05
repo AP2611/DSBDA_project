@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import embed from "vega-embed";
 
 const API_BASE = "http://localhost:8000/api";
 
@@ -159,9 +160,55 @@ function ChatMessage({ message, isUser }) {
   );
 }
 
-// Chart component using simple HTML/CSS (Vega-Lite would need additional setup)
+// Chart component using Vega-Lite
 function ChartDisplay({ chartSpec, data }) {
+  const chartRef = useRef(null);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (!chartSpec || !chartRef.current) return;
+
+    const renderChart = async () => {
+      try {
+        setError(null);
+        // Merge the chart spec with data if provided
+        const spec = chartSpec.data ? chartSpec : { ...chartSpec, data: { values: data } };
+        
+        await embed(chartRef.current, spec, {
+          actions: false,
+          renderer: 'svg',
+          theme: 'light'
+        });
+      } catch (err) {
+        console.error('Chart render error:', err);
+        setError('Failed to render chart');
+      }
+    };
+
+    renderChart();
+  }, [chartSpec, data]);
+
   if (!chartSpec && !data) return null;
+  
+  // Render Vega-Lite chart
+  if (chartSpec) {
+    return (
+      <div style={{
+        marginTop: '12px',
+        padding: '16px',
+        background: 'white',
+        borderRadius: '12px',
+        border: '1px solid hsl(270, 20%, 90%)',
+      }}>
+        <div ref={chartRef} style={{ width: '100%' }} />
+        {error && (
+          <div style={{ color: 'hsl(0, 70%, 50%)', fontSize: 13, marginTop: 8 }}>
+            {error}
+          </div>
+        )}
+      </div>
+    );
+  }
   
   // Simple table display for data
   if (data && data.length > 0) {
@@ -613,7 +660,7 @@ export default function DataAnalysisAssistant() {
               {messages.map((msg, i) => (
                 <div key={i}>
                   <ChatMessage message={msg.content} isUser={msg.role === 'user'} />
-                  {msg.data && <ChartDisplay chartSpec={msg.chartSpec} data={msg.data} />}
+                  {(msg.chartSpec || msg.data) && <ChartDisplay chartSpec={msg.chartSpec} data={msg.data} />}
                 </div>
               ))}
               {isLoading && (
