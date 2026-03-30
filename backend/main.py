@@ -15,6 +15,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel, Field, validator
+from sqlalchemy.orm import Session
 import pandas as pd
 import httpx
 import logging
@@ -654,8 +655,11 @@ async def delete_dataset(
     return {"message": "Dataset deleted successfully"}
 
 @app.get("/api/health")
-async def health_check():
-    """Health check endpoint"""
+async def health_check(
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Health check endpoint (requires authentication)"""
     ollama_status = "unknown"
     
     try:
@@ -665,10 +669,16 @@ async def health_check():
     except:
         ollama_status = "disconnected"
     
+    # Count user's datasets
+    datasets_count = db.query(models.Dataset).filter(
+        models.Dataset.owner_id == current_user.id
+    ).count()
+    
     return {
         "status": "healthy",
         "ollama": ollama_status,
-        "datasets_count": len(datasets)
+        "datasets_count": datasets_count,
+        "user": current_user.username
     }
 
 if __name__ == "__main__":
