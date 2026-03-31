@@ -13,7 +13,6 @@ import {
   Linkedin, 
   Mail,
   ChevronRight,
-  TrendingUp,
   Cpu,
   ShieldCheck
 } from 'lucide-react';
@@ -39,28 +38,28 @@ const Landing = () => {
 
   const features = [
     { 
-      title: "AI Campaign Builder", 
-      desc: "Create and launch campaigns in under 5 minutes with automated targeting suggestions.",
-      icon: <Zap className="w-5 h-5 text-primary" />
-    },
-    { 
-      title: "Smart Analytics Dashboard", 
-      desc: "Visualize your ROI, CTR, and conversions in real-time with predictive insights.",
-      icon: <BarChart3 className="w-5 h-5 text-secondary" />
-    },
-    { 
-      title: "Seamless Integrations", 
-      desc: "Connect with Shopify, HubSpot, WordPress, and 20+ other marketing tools.",
-      icon: <Layers className="w-5 h-5 text-accent" />
-    },
-    { 
-      title: "Email & Chat Automation", 
-      desc: "Send the right message to the right person at the right time automatically.",
+      title: "Natural Language Queries", 
+      desc: "Ask questions about your data in plain English and get instant answers.",
       icon: <MessageSquare className="w-5 h-5 text-primary" />
     },
     { 
-      title: "Advanced A/B Testing", 
-      desc: "Experiment with different creatives and strategies to find what works best.",
+      title: "Smart Visualizations", 
+      desc: "Automatically generate charts and graphs based on your data and queries.",
+      icon: <BarChart3 className="w-5 h-5 text-secondary" />
+    },
+    { 
+      title: "Multi-Format Support", 
+      desc: "Upload CSV, Excel, or PDF files and start analyzing immediately.",
+      icon: <Layers className="w-5 h-5 text-accent" />
+    },
+    { 
+      title: "AI-Powered Insights", 
+      desc: "Get intelligent suggestions and uncover patterns in your data.",
+      icon: <Zap className="w-5 h-5 text-primary" />
+    },
+    { 
+      title: "Interactive Dashboards", 
+      desc: "Explore your data with interactive visualizations and filters.",
       icon: <Cpu className="w-5 h-5 text-secondary" />
     }
   ];
@@ -102,12 +101,10 @@ const Landing = () => {
       {/* Navigation */}
       <nav className="fixed top-0 w-full z-50 px-6 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between glass py-3 px-8 rounded-full border-white/20 shadow-lg backdrop-blur-md">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center shadow-lg shadow-primary/20">
-              <TrendingUp className="text-white w-5 h-5" />
-            </div>
-            <span className="font-bold text-xl tracking-tight uppercase bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">
-              MarketBoost <span className="text-primary">AI</span>
+          <div className="flex items-center gap-3">
+            <img src="/querio-logo.png" alt="Querio" className="w-10 h-10 object-contain" />
+            <span className="font-bold text-2xl tracking-tight">
+              querio
             </span>
           </div>
           
@@ -166,15 +163,15 @@ const Landing = () => {
         >
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full glass border-white/20 text-[10px] font-bold uppercase tracking-widest text-primary mb-6">
             <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></div>
-            AI-Powered Marketing Transformation
+            AI-Powered Data Analysis
           </div>
           <h1 className="text-6xl md:text-8xl font-black mb-8 leading-[1.1] tracking-tight">
-            Analyze Data.<br />
-            <span className="gradient-text">Boost ROI.</span>
+            Query Data.<br />
+            <span className="gradient-text">Get Insights.</span>
           </h1>
           <p className="max-w-2xl mx-auto text-lg text-foreground/60 mb-12 leading-relaxed">
-            Unleash the power of AI to transform your raw data into actionable marketing strategies. 
-            Automate campaigns, predict trends, and scale your business effortlessly.
+            Transform your raw data into actionable insights with natural language queries. 
+            Upload, analyze, and visualize your data effortlessly with AI assistance.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -210,18 +207,18 @@ const Landing = () => {
               variants={itemVariants}
             >
               <h2 className="text-4xl md:text-5xl font-black mb-6 leading-tight">
-                Engineered for <br /><span className="text-primary">Growth Acceleration</span>
+                Engineered for <br /><span className="text-primary">Data Intelligence</span>
               </h2>
               <p className="text-lg text-foreground/60 mb-8 leading-relaxed">
-                MarketBoost AI was born from the intersection of deep data science and creative marketing expertise. 
-                Our platform bridges the gap between complex datasets and high-converting campaigns.
+                Querio combines advanced natural language processing with powerful data analysis capabilities. 
+                Ask questions in plain English and get instant insights from your datasets.
               </p>
               
               <div className="space-y-4">
                 {[
-                  "Proprietary ML algorithms for trend prediction",
-                  "Real-time processing for dynamic optimization",
-                  "Built with enterprise-grade security protocols"
+                  "Natural language queries for data analysis",
+                  "Real-time visualization and chart generation",
+                  "Support for CSV, Excel, and PDF files"
                 ].map((text, i) => (
                   <div key={i} className="flex items-center gap-3">
                     <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
@@ -236,9 +233,9 @@ const Landing = () => {
             <div className="grid grid-cols-2 gap-6">
               {[
                 { label: "Data Quality", value: "99.9%", icon: <ShieldCheck /> },
-                { label: "ROI Uplift", value: "+45%", icon: <TrendingUp /> },
+                { label: "Query Speed", value: "<1s", icon: <Zap /> },
                 { label: "Active Users", value: "12k+", icon: <Linkedin /> },
-                { label: "Integration", value: "SaaS+", icon: <Layers /> },
+                { label: "File Formats", value: "5+", icon: <Layers /> },
               ].map((stat, i) => (
                 <motion.div
                   key={i}
@@ -263,9 +260,9 @@ const Landing = () => {
       {/* Features Section */}
       <section id="features" className="py-24 px-6 max-w-7xl mx-auto">
         <div className="text-center mb-20">
-          <h2 className="text-4xl md:text-5xl font-black mb-6">Core Infrastructure</h2>
+          <h2 className="text-4xl md:text-5xl font-black mb-6">Core Features</h2>
           <p className="text-foreground/60 max-w-xl mx-auto">
-            Everything you need to scale your marketing efforts through advanced artificial intelligence and data orchestration.
+            Everything you need to analyze and visualize your data through natural language conversations.
           </p>
         </div>
 
@@ -361,7 +358,7 @@ const Landing = () => {
           <div className="flex flex-col md:flex-row gap-12 items-start">
             <div className="md:w-1/3">
               <span className="text-[10px] font-black uppercase tracking-widest text-primary mb-6 block">Case Example</span>
-              <h2 className="text-3xl font-black mb-8 leading-tight">"Within 3 months of using MarketBoost AI, our conversion rate saw a 62% increase."</h2>
+              <h2 className="text-3xl font-black mb-8 leading-tight">"Within minutes of uploading my dataset, I had actionable insights that would have taken hours to extract manually."</h2>
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 rounded-full bg-muted"></div>
                 <div>
@@ -374,20 +371,20 @@ const Landing = () => {
             <div className="md:w-2/3 grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="glass p-8 rounded-3xl border-white/30">
                 <p className="text-sm font-medium leading-relaxed mb-6 italic opacity-70">
-                  "The AI targeting suggestions are scary accurate. We've cut our customer acquisition cost by nearly half."
+                  "The natural language queries make data analysis accessible to everyone on our team, not just data scientists."
                 </p>
                 <div className="flex items-center gap-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-secondary"></div>
-                  <span className="text-[10px] font-bold uppercase tracking-widest opacity-40">Retail Sector</span>
+                  <span className="text-[10px] font-bold uppercase tracking-widest opacity-40">Analytics Team</span>
                 </div>
               </div>
               <div className="glass p-8 rounded-3xl border-white/30 mt-8">
                 <p className="text-sm font-medium leading-relaxed mb-6 italic opacity-70">
-                  "Integrations were seamless. Our entire stack was connected and analyzing data in less than 24 hours."
+                  "Upload, query, visualize - all in one place. The chart generation is incredibly intuitive."
                 </p>
                 <div className="flex items-center gap-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-accent"></div>
-                  <span className="text-[10px] font-bold uppercase tracking-widest opacity-40">SaaS Platform</span>
+                  <span className="text-[10px] font-bold uppercase tracking-widest opacity-40">Data Analyst</span>
                 </div>
               </div>
             </div>
@@ -400,15 +397,13 @@ const Landing = () => {
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-20">
             <div className="col-span-1 md:col-span-2">
-              <div className="flex items-center gap-2 mb-6">
-                <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center">
-                  <TrendingUp className="text-white w-5 h-5" />
-                </div>
-                <span className="font-bold text-xl tracking-tighter uppercase">MarketBoost AI</span>
+              <div className="flex items-center gap-3 mb-6">
+                <img src="/querio-logo.png" alt="Querio" className="w-10 h-10 object-contain" />
+                <span className="font-bold text-2xl tracking-tight">querio</span>
               </div>
               <p className="text-foreground/50 max-w-sm mb-8 leading-relaxed">
-                Empowering businesses with intelligent data orchestration and marketing automation. 
-                Built for the modern era of growth.
+                Empowering everyone to analyze data through natural language. 
+                Query your data, get insights, visualize results.
               </p>
               <div className="flex items-center gap-4">
                 {[Twitter, Linkedin, Github, Mail].map((Icon, i) => (
@@ -422,10 +417,10 @@ const Landing = () => {
             <div>
               <h4 className="font-bold mb-6 uppercase text-[10px] tracking-widest opacity-30">Platform</h4>
               <ul className="space-y-4 text-sm font-medium text-foreground/60">
-                <li><a href="#" className="hover:text-primary transition-colors">Campaigns</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Analytics</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Integrations</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Automation</a></li>
+                <li><a href="#" className="hover:text-primary transition-colors">Upload Data</a></li>
+                <li><a href="#" className="hover:text-primary transition-colors">Query Builder</a></li>
+                <li><a href="#" className="hover:text-primary transition-colors">Visualizations</a></li>
+                <li><a href="#" className="hover:text-primary transition-colors">Export</a></li>
               </ul>
             </div>
 
@@ -441,7 +436,7 @@ const Landing = () => {
           </div>
 
           <div className="flex flex-col md:flex-row items-center justify-between py-10 border-t border-white/10 text-xs font-medium text-foreground/40">
-            <p>© 2026 MarketBoost AI. All rights reserved.</p>
+            <p>© 2026 Querio. All rights reserved.</p>
             <div className="flex items-center gap-8 mt-4 md:mt-0">
               <a href="#" className="hover:text-primary transition-colors">Privacy Policy</a>
               <a href="#" className="hover:text-primary transition-colors">Terms of Service</a>

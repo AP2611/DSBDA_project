@@ -2,7 +2,6 @@ import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import embed from "vega-embed";
 import { 
-  TrendingUp, 
   Upload, 
   FileText, 
   MessageSquare, 
@@ -295,12 +294,10 @@ export default function DataAnalysisAssistant({ onLogout }) {
 
         <div className="p-6 pb-2">
           <Link to="/" className="flex items-center gap-3 mb-10 group">
-            <div className="w-10 h-10 rounded-2xl gradient-primary flex items-center justify-center shadow-lg shadow-primary/20 group-hover:scale-110 transition-transform">
-              <TrendingUp className="text-white w-5 h-5" />
-            </div>
+            <img src="/querio-logo.png" alt="Querio" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform" />
             {isSidebarOpen && (
-              <span className="font-bold text-xl tracking-tighter uppercase whitespace-nowrap">
-                MarketBoost <span className="text-primary">AI</span>
+              <span className="font-bold text-xl tracking-tight whitespace-nowrap">
+                querio
               </span>
             )}
           </Link>

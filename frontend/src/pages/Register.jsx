@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { TrendingUp, User, Mail, Lock, ArrowRight, Loader2, CheckCircle2 } from "lucide-react";
+import { User, Mail, Lock, ArrowRight, Loader2, CheckCircle2 } from "lucide-react";
 
 const API_BASE = "http://localhost:8000/api";
 
@@ -76,15 +76,13 @@ export default function Register() {
           <div className="absolute top-0 right-0 w-32 h-32 bg-secondary/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl"></div>
           
           <div className="flex flex-col items-center mb-10">
-            <Link to="/" className="group flex items-center gap-2 mb-8">
-              <div className="w-12 h-12 rounded-2xl gradient-primary flex items-center justify-center shadow-lg shadow-primary/20 group-hover:scale-110 transition-transform">
-                <TrendingUp className="text-white w-6 h-6" />
-              </div>
-              <span className="font-bold text-2xl tracking-tighter uppercase">MarketBoost <span className="text-primary">AI</span></span>
+            <Link to="/" className="group flex items-center gap-3 mb-8">
+              <img src="/querio-logo.png" alt="Querio" className="w-12 h-12 object-contain" />
+              <span className="font-bold text-2xl tracking-tight">querio</span>
             </Link>
             
             <h1 className="text-3xl font-black mb-2 tracking-tight">Create Account</h1>
-            <p className="text-foreground/50 text-sm font-medium">Join 12k+ businesses scaling with AI</p>
+            <p className="text-foreground/50 text-sm font-medium">Start analyzing your data with AI</p>
           </div>
 
           {error && (
