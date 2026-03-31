@@ -134,10 +134,10 @@ async def call_ollama(prompt: str, system_prompt: str = "") -> str:
 
 def load_dataframe(dataset_id: str) -> pd.DataFrame:
     """Load dataset as pandas DataFrame"""
-    if dataset_id not in datasets:
+    if dataset_id not in datasets_cache:
         raise HTTPException(status_code=404, detail="Dataset not found")
     
-    dataset = datasets[dataset_id]
+    dataset = datasets_cache[dataset_id]
     file_path = dataset["file_path"]
     
     if file_path.endswith(".csv"):
