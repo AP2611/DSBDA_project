@@ -3,7 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Mail, Lock, ArrowRight, Loader2 } from "lucide-react";
 
-const API_BASE = "http://localhost:8000/api";
+import { API_BASE_URL } from "../config";
 
 export default function Login({ onLogin }) {
   const [username, setUsername] = useState("");
@@ -22,7 +22,7 @@ export default function Login({ onLogin }) {
       formData.append("username", username);
       formData.append("password", password);
       
-      const response = await fetch(`${API_BASE}/auth/login`, {
+      const response = await fetch(`${API_BASE_URL}/auth/login`, {
         method: "POST",
         body: formData,
       });

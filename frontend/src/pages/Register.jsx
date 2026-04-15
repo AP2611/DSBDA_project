@@ -3,7 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { User, Mail, Lock, ArrowRight, Loader2, CheckCircle2 } from "lucide-react";
 
-const API_BASE = "http://localhost:8000/api";
+import { API_BASE_URL } from "../config";
 
 export default function Register() {
   const [username, setUsername] = useState("");
@@ -36,7 +36,7 @@ export default function Register() {
     setIsLoading(true);
 
     try {
-      const response = await fetch(`${API_BASE}/auth/register`, {
+      const response = await fetch(`${API_BASE_URL}/auth/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

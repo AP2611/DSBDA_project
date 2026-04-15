@@ -22,7 +22,7 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
-const API_BASE = "http://localhost:8000/api";
+import { API_BASE_URL } from "../config";
 
 // --- Components ---
 
@@ -184,7 +184,7 @@ export default function DataAnalysisAssistant({ onLogout }) {
 
   const checkConnection = async () => {
     try {
-      const response = await fetch(`${API_BASE}/health`, {
+      const response = await fetch(`${API_BASE_URL}/health`, {
         headers: getAuthHeader() || {}
       });
       if (response.status === 401) {
@@ -199,7 +199,7 @@ export default function DataAnalysisAssistant({ onLogout }) {
 
   const fetchUserInfo = async () => {
     try {
-      const response = await fetch(`${API_BASE}/auth/me`, {
+      const response = await fetch(`${API_BASE_URL}/auth/me`, {
         headers: getAuthHeader() || {}
       });
       if (response.status === 401) {
@@ -212,7 +212,7 @@ export default function DataAnalysisAssistant({ onLogout }) {
 
   const fetchDatasets = async () => {
     try {
-      const response = await fetch(`${API_BASE}/datasets`, {
+      const response = await fetch(`${API_BASE_URL}/datasets`, {
         headers: getAuthHeader() || {}
       });
       if (response.status === 401) {
@@ -239,7 +239,7 @@ export default function DataAnalysisAssistant({ onLogout }) {
       for (const file of files) {
         const formData = new FormData();
         formData.append('file', file);
-        const response = await fetch(`${API_BASE}/datasets/upload`, {
+        const response = await fetch(`${API_BASE_URL}/datasets/upload`, {
           method: 'POST',
           headers: authHeader,
           body: formData,
@@ -271,7 +271,7 @@ export default function DataAnalysisAssistant({ onLogout }) {
     e.stopPropagation();
     if (!confirm('Permanently delete this dataset?')) return;
     try {
-      const response = await fetch(`${API_BASE}/datasets/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/datasets/${id}`, {
         method: 'DELETE',
         headers: getAuthHeader() || {}
       });
@@ -299,7 +299,7 @@ export default function DataAnalysisAssistant({ onLogout }) {
         handleUnauthorized();
         return;
       }
-      const response = await fetch(`${API_BASE}/chat`, {
+      const response = await fetch(`${API_BASE_URL}/chat`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
